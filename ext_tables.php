@@ -1,5 +1,5 @@
 <?php
-defined('TYPO3_MODE') || die();
+defined('TYPO3_MODE') || die;
 
 call_user_func(function () {
     $GLOBALS['TYPO3_CONF_VARS']['BE']['toolbarItems'][1472569541] =
