@@ -1,10 +1,13 @@
 # TYPO3 Extension begroups_roles
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/ichhabrecht/begroups-roles.svg)](https://packagist.org/packages/ichhabrecht/begroups-roles)
-[![Build Status](https://img.shields.io/travis/IchHabRecht/begroups_roles/master.svg)](https://travis-ci.org/IchHabRecht/begroups_roles)
-[![StyleCI](https://styleci.io/repos/18537810/shield?branch=master)](https://styleci.io/repos/18537810)
+[![Latest Stable Version](https://img.shields.io/packagist/v/cron-eu/begroups-roles.svg)](https://packagist.org/packages/cron-eu/begroups-roles)
+[![StyleCI](https://styleci.io/repos/699370966/shield?branch=master)](https://styleci.io/repos/699370966)
 
 Use backend user groups as switchable roles
+
+Note: this is a fork from https://github.com/IchHabRecht/begroups_roles
+with improvements needed for cron-eu projects, most notably TYPO3 v11
+support.
 
 ![Role switcher](Documentation/Images/role_switcher.png)
 
@@ -13,7 +16,7 @@ Use backend user groups as switchable roles
 Simply install the extension with Composer or the Extension Manager.
 
 ```
-composer require ichhabrecht/begroups-roles
+composer require cron-eu/begroups-roles
 ```
 
 ## Usage

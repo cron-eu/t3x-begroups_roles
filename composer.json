@@ -1,5 +1,5 @@
 {
-    "name": "ichhabrecht/begroups-roles",
+    "name": "cron-eu/begroups-roles",
     "type": "typo3-cms-extension",
     "description": "Use backend user groups as switchable roles",
     "keywords": [
@@ -44,7 +44,8 @@
         }
     },
     "replace": {
-        "typo3-ter/begroups-roles": "self.version"
+        "typo3-ter/begroups-roles": "self.version",
+        "ichhabrecht/begroups-roles": "self.version"
     },
     "config": {
         "vendor-dir": ".Build/vendor",

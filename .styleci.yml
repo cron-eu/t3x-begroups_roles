@@ -1,4 +1,5 @@
 preset: psr2
+version: 8.2
 
 enabled:
   - alpha_ordered_imports
@@ -12,7 +13,6 @@ enabled:
   - method_separation
   - native_function_casing
   - new_with_braces
-  - no_alias_functions
   - no_blank_lines_after_class_opening
   - no_blank_lines_after_phpdoc
   - no_blank_lines_before_namespace
@@ -30,13 +30,11 @@ enabled:
   - no_trailing_comma_in_list_call
   - no_trailing_comma_in_singleline_array
   - no_unneeded_control_parentheses
-  - no_unreachable_default_argument_value
   - no_unused_imports
   - no_useless_else
   - no_useless_return
   - no_whitespace_before_comma_in_array
   - no_whitespace_in_blank_line
-  - non_printable_character
   - normalize_index_brace
   - object_operator_without_whitespace
   - phpdoc_add_missing_param_annotation
@@ -51,7 +49,6 @@ enabled:
   - phpdoc_types
   - phpdoc_var_without_name
   - return_type_declaration
-  - self_accessor
   - short_array_syntax
   - short_scalar_cast
   - single_quote
