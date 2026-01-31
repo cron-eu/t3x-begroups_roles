@@ -1,8 +1,10 @@
 <?php
 
+use IchHabRecht\BegroupsRoles\Backend\ToolbarItems\RoleSwitcher;
+
 return [
     'role_switch' => [
         'path' => '/role/switch',
-        'target' => \IchHabRecht\BegroupsRoles\Backend\ToolbarItems\RoleSwitcher::class . '::switchRoleAction',
+        'target' => RoleSwitcher::class . '::switchRoleAction',
     ],
 ];

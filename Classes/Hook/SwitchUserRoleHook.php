@@ -52,8 +52,9 @@ class SwitchUserRoleHook
     protected $connection;
 
     public function __construct(
-        BackendUserAuthentication $backendUser = null,
-        Connection $connection = null
+        ?BackendUserAuthentication $backendUser = null,
+        ?Connection $connection = null,
+        private readonly ?Context $context = null
     ) {
         $this->backendUser = $backendUser ?: $GLOBALS['BE_USER'];
         $this->connection = $connection ?: GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($this->backendUser->user_table);
@@ -62,7 +63,7 @@ class SwitchUserRoleHook
     /**
      * Assign user group from session data
      */
-    public function setUserGroup()
+    public function setUserGroup(): void
     {
         if (empty($this->backendUser->user['tx_begroupsroles_enabled'])) {
             return;
@@ -82,7 +83,7 @@ class SwitchUserRoleHook
                 ->where(
                     $queryBuilder->expr()->eq(
                         'uid',
-                        $queryBuilder->createNamedParameter($this->backendUser->user['uid'], \PDO::PARAM_INT)
+                        $queryBuilder->createNamedParameter($this->backendUser->user['uid'], \TYPO3\CMS\Core\Database\Connection::PARAM_INT)
                     )
                 )
                 ->set('tx_begroupsroles_groups', $this->backendUser->user['tx_begroupsroles_groups'])
@@ -102,23 +103,23 @@ class SwitchUserRoleHook
                     ),
                     $expressionBuilder->eq(
                         'tx_begroupsroles_isrole',
-                        $queryBuilder->createNamedParameter(1, \PDO::PARAM_INT)
+                        $queryBuilder->createNamedParameter(1, \TYPO3\CMS\Core\Database\Connection::PARAM_INT)
                     )
                 )
                 ->orderBy('title')
                 ->execute()
                 ->fetchAll();
 
-            $rows = array_combine(array_map('intval', array_column($rows, 'uid')), $rows);
+            $rows = array_combine(array_map(intval(...), array_column($rows, 'uid')), $rows);
             $orderedUsergroups = array_keys(array_intersect_key($rows, array_flip($possibleUsergroups)));
 
             $role = !empty($orderedUsergroups[0]) ? $orderedUsergroups[0] : 0;
         }
         if (in_array($role, $possibleUsergroups, true)) {
             $this->backendUser->user[$this->backendUser->usergroup_column] = $role;
-            $typo3Version = class_exists(\TYPO3\CMS\Core\Information\Typo3Version::class)
-                ? (new Typo3Version())->getVersion()
-                : TYPO3_version;
+            $typo3Version = class_exists(Typo3Version::class)
+                ? new Typo3Version()->getVersion()
+                : GeneralUtility::makeInstance(Typo3Version::class)->getVersion();
             if (version_compare($typo3Version, '11.5', '>=')) {
                 $groupResolver = GeneralUtility::makeInstance(GroupResolver::class);
                 $groups = $groupResolver->resolveGroupsForUser($this->backendUser->user, $this->backendUser->usergroup_table);
@@ -137,8 +138,8 @@ class SwitchUserRoleHook
                 $this->backendUser->user['options'] |= Permission::PAGE_SHOW | Permission::PAGE_EDIT;
                 $this->backendUser->user['admin'] = 0;
             }
-            if (class_exists('TYPO3\\CMS\\Core\\Context\\Context')) {
-                GeneralUtility::makeInstance(Context::class)->setAspect(
+            if (class_exists(Context::class)) {
+                $this->context->setAspect(
                     'backend.user',
                     GeneralUtility::makeInstance(
                         UserAspect::class,
@@ -167,7 +168,7 @@ class SwitchUserRoleHook
             ->where(
                 $expressionBuilder->eq(
                     'pid',
-                    $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                    $queryBuilder->createNamedParameter(0, \TYPO3\CMS\Core\Database\Connection::PARAM_INT)
                 ),
                 $expressionBuilder->in(
                     'uid',
@@ -179,12 +180,12 @@ class SwitchUserRoleHook
                 $expressionBuilder->orX(
                     $expressionBuilder->eq(
                         'lockToDomain',
-                        $queryBuilder->createNamedParameter('', \PDO::PARAM_STR)
+                        $queryBuilder->createNamedParameter('', \TYPO3\CMS\Core\Database\Connection::PARAM_STR)
                     ),
                     $expressionBuilder->isNull('lockToDomain'),
                     $expressionBuilder->eq(
                         'lockToDomain',
-                        $queryBuilder->createNamedParameter(GeneralUtility::getIndpEnv('HTTP_HOST'), \PDO::PARAM_STR)
+                        $queryBuilder->createNamedParameter(GeneralUtility::getIndpEnv('HTTP_HOST'), \TYPO3\CMS\Core\Database\Connection::PARAM_STR)
                     )
                 )
             )

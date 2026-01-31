@@ -10,7 +10,7 @@
  * writing. "version" and "dependencies" must not be touched!
  ***************************************************************/
 
-$EM_CONF[$_EXTKEY] = array (
+$EM_CONF[$_EXTKEY] =  [
   'title' => 'Backend user roles',
   'description' => 'Use backend user groups as switchable roles',
   'category' => 'module',
@@ -18,22 +18,19 @@ $EM_CONF[$_EXTKEY] = array (
   'author_email' => 'typo3@cordes.co',
   'author_company' => 'CPS-IT GmbH | biz-design.biz',
   'state' => 'stable',
-  'uploadfolder' => 0,
-  'createDirs' => '',
-  'clearCacheOnLoad' => 1,
   'version' => '3.1.2',
   'constraints' =>
-  array (
+   [
     'depends' =>
-    array (
-      'typo3' => '8.7.0-13.4.99',
-    ),
+     [
+      'typo3' => '13.4.0-13.4.99',
+    ],
     'conflicts' =>
-    array (
-    ),
+     [
+    ],
     'suggests' =>
-    array (
-    ),
-  ),
-);
+     [
+    ],
+  ],
+];
 

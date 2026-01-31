@@ -57,7 +57,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function checkAccessReturnsFalseWhenBeUsersFlagNotSet()
+    public function checkAccessReturnsFalseWhenBeUsersFlagNotSet(): void
     {
         $this->setUpBackendUserFromFixture(2);
         $roleSwitcher = new RoleSwitcher();
@@ -68,7 +68,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function checkAccessReturnsFalseWhenBeUsersFlagSetWithoutRoles()
+    public function checkAccessReturnsFalseWhenBeUsersFlagSetWithoutRoles(): void
     {
         $this->setUpBackendUserFromFixture(4);
         $roleSwitcher = new RoleSwitcher();
@@ -80,7 +80,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function checkAccessReturnsTrueWhenBeUsersFlagSetWithRoles()
+    public function checkAccessReturnsTrueWhenBeUsersFlagSetWithRoles(): void
     {
         $this->setUpBackendUserFromFixture(3);
         $roleSwitcher = new RoleSwitcher();
@@ -91,7 +91,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function getItemReturnsAllGroupsLabel()
+    public function getItemReturnsAllGroupsLabel(): void
     {
         $this->setUpBackendUserFromFixture(3);
         $roleSwitcher = new RoleSwitcher();
@@ -103,7 +103,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function getItemNotReturnsAllGroupsLabelForLimitedUser()
+    public function getItemNotReturnsAllGroupsLabelForLimitedUser(): void
     {
         $this->setUpBackendUserFromFixture(5);
         $roleSwitcher = new RoleSwitcher();
@@ -115,7 +115,7 @@ class RoleSwitcherTest extends FunctionalTestCase
     /**
      * @test
      */
-    public function getItemReturnsFirstGroupForLimitedUser()
+    public function getItemReturnsFirstGroupForLimitedUser(): void
     {
         $this->setUpBackendUserFromFixture(5);
         $roleSwitcher = new RoleSwitcher();

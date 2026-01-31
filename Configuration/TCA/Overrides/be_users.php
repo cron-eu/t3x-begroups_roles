@@ -1,5 +1,7 @@
 <?php
-if (!defined('TYPO3_MODE')) {
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+
+if (!defined('TYPO3')) {
     die('Access denied.');
 }
 
@@ -21,6 +23,6 @@ $tempColumns = [
         ],
     ],
 ];
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('be_users', $tempColumns);
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette('be_users', 'tx_begroupsroles', 'tx_begroupsroles_enabled, tx_begroupsroles_limit');
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('be_users', '--palette--;LLL:EXT:begroups_roles/Resources/Private/Language/locallang_db.xlf:be_users.tx_begroupsroles_title;tx_begroupsroles', '', 'after:usergroup');
+ExtensionManagementUtility::addTCAcolumns('be_users', $tempColumns);
+ExtensionManagementUtility::addFieldsToPalette('be_users', 'tx_begroupsroles', 'tx_begroupsroles_enabled, tx_begroupsroles_limit');
+ExtensionManagementUtility::addToAllTCAtypes('be_users', '--palette--;LLL:EXT:begroups_roles/Resources/Private/Language/locallang_db.xlf:be_users.tx_begroupsroles_title;tx_begroupsroles', '', 'after:usergroup');
