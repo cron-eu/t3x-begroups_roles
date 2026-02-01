@@ -1,0 +1,35 @@
+<html xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers" data-namespace-typo3-fluid="true">
+
+<f:variable name="icon" value="{core:icon(identifier: 'status-user-group-backend', size: 'small', alternativeMarkupIdentifier: 'inline')}" />
+
+<p class="dropdown-headline">Role Switch</p>
+<f:comment><p class="dropdown-item-text">Here you switch between your various roles.</p></f:comment>
+
+<ul class="dropdown-list">
+    <f:if condition="{role} && {user.user.tx_begroupsroles_limit} == 0">
+        <li>
+            <a href="#" class="dropdown-item" data-role="0">
+                {icon -> f:format.raw()}
+                {f:translate(key:'LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:all_groups')}
+            </a>
+        </li>
+    </f:if>
+    <f:for each="{groups}" as="group">
+        <li>
+            <f:if condition="{role} == {group.uid}">
+                <f:then>
+                    <a href="#" class="dropdown-item active" data-role="{group.uid}">
+                        {icon -> f:format.raw()}
+                        {group.title}
+                    </a>
+                </f:then>
+                <f:else>
+                    <a href="#" class="dropdown-item" data-role="{group.uid}">
+                        {icon -> f:format.raw()}
+                        {group.title}
+                    </a>
+                </f:else>
+            </f:if>
+        </li>
+    </f:for>
+</ul>

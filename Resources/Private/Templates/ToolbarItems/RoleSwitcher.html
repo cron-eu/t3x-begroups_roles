@@ -1,0 +1,17 @@
+<html xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers" data-namespace-typo3-fluid="true">
+
+<f:asset.module identifier="@cron-eu/begroups-roles/Toolbar/RoleSwitcher.js"/>
+
+<f:variable name="title" value="{f:translate(key: 'LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:switch_group')}" />
+<f:variable name="icon" value="{core:icon(identifier: 'begroups-roles-switchUserGroup', size: 'small', alternativeMarkupIdentifier: 'inline')}" />
+
+<span class="toolbar-item-icon" title="{title}">
+    {icon -> f:format.raw()}
+</span>
+<span class="toolbar-item-title">{title}</span>
+<span class="toolbar-item-name">
+    <f:if condition="{group}">
+        <f:then>{group.title}</f:then>
+        <f:else>{f:translate(key:'LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:all_groups')}</f:else>
+    </f:if>
+</span>
