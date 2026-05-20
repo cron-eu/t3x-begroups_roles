@@ -25,16 +25,18 @@ namespace IchHabRecht\BegroupsRoles\Backend\ToolbarItems;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Doctrine\DBAL\Connection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Backend\Toolbar\RequestAwareToolbarItemInterface;
 use TYPO3\CMS\Backend\Toolbar\ToolbarItemInterface;
+use TYPO3\CMS\Backend\View\BackendViewFactory;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Http\JsonResponse;
-use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\IconSize;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -42,7 +44,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Renders roles switcher to toolbar
  */
-class RoleSwitcher implements ToolbarItemInterface
+class RoleSwitcher implements ToolbarItemInterface, RequestAwareToolbarItemInterface
 {
     /**
      * @var BackendUserAuthentication
@@ -50,34 +52,21 @@ class RoleSwitcher implements ToolbarItemInterface
     protected $backendUser;
 
     /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @var IconFactory
-     */
-    private $iconFactory;
-
-    /**
      * @var LanguageService
      */
     protected $languageService;
 
     /**
-     * @var PageRenderer
+     * @var Connection
      */
-    protected $pageRenderer;
-
-    /**
-     * @var UriBuilder
-     */
-    protected $uriBuilder;
+    protected $connection;
 
     /**
      * @var array
      */
     protected $groups = [];
+
+    private ServerRequestInterface $request;
 
     /**
      * @var int
@@ -85,19 +74,18 @@ class RoleSwitcher implements ToolbarItemInterface
     protected $role = 0;
 
     public function __construct(
-        BackendUserAuthentication $backendUser = null,
-        Connection $connection = null,
-        IconFactory $iconFactory = null,
-        $languageService = null,
-        PageRenderer $pageRenderer = null,
-        UriBuilder $uriBuilder = null
+        private readonly BackendViewFactory $backendViewFactory,
+        private readonly IconFactory $iconFactory,
+        private readonly UriBuilder $uriBuilder
     ) {
-        $this->backendUser = $backendUser ?: $GLOBALS['BE_USER'];
-        $this->connection = $connection ?: GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($this->backendUser->user_table);
-        $this->iconFactory = $iconFactory ?: GeneralUtility::makeInstance(IconFactory::class);
-        $this->languageService = $languageService ?: $GLOBALS['LANG'];
-        $this->pageRenderer = $pageRenderer ?: GeneralUtility::makeInstance(PageRenderer::class);
-        $this->uriBuilder = $uriBuilder ?: GeneralUtility::makeInstance(UriBuilder::class);
+        $this->backendUser = $GLOBALS['BE_USER'];
+        $this->languageService = $GLOBALS['LANG'];
+        $this->connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($this->backendUser->user_table);
+    }
+
+    public function setRequest(ServerRequestInterface $request): void
+    {
+        $this->request = $request;
     }
 
     /**
@@ -127,14 +115,14 @@ class RoleSwitcher implements ToolbarItemInterface
                 ),
                 $expressionBuilder->eq(
                     'tx_begroupsroles_isrole',
-                    $queryBuilder->createNamedParameter(1, \PDO::PARAM_INT)
+                    $queryBuilder->createNamedParameter(1, \TYPO3\CMS\Core\Database\Connection::PARAM_INT)
                 )
             )
             ->orderBy('title')
-            ->execute()
-            ->fetchAll();
+            ->executeQuery()
+            ->fetchAllAssociative();
 
-        $this->groups = array_combine(array_map('intval', array_column($rows, 'uid')), $rows);
+        $this->groups = array_combine(array_map(intval(...), array_column($rows, 'uid')), $rows);
 
         return !empty($this->groups);
     }
@@ -146,17 +134,9 @@ class RoleSwitcher implements ToolbarItemInterface
      */
     public function getItem()
     {
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/BegroupsRoles/Toolbar/RoleSwitcher');
-
-        $title = $this->languageService->sL('LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:switch_group');
-        $groupTitle = !empty($this->groups[$this->role])
-            ? $this->groups[$this->role]['title']
-            : $this->languageService->sL('LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:all_groups');
-
-        return '<span title="' . htmlspecialchars($title) . '">'
-            . $this->iconFactory->getIcon('begroups-roles-switchUserGroup', Icon::SIZE_SMALL)->render()
-            . ' [' . htmlspecialchars($groupTitle) . ']'
-            . '</span>';
+        $view = $this->backendViewFactory->create($this->request);
+        $view->assign('group', $this->groups[$this->role] ?? null);
+        return $view->render('ToolbarItems/RoleSwitcher');
     }
 
     /**
@@ -176,32 +156,13 @@ class RoleSwitcher implements ToolbarItemInterface
      */
     public function getDropDown()
     {
-        $groupIcon = $this->iconFactory->getIcon('status-user-group-backend', Icon::SIZE_SMALL)->render('inline');
-
-        $result = [];
-        $result[] = '<ul class="dropdown-list">';
-
-        if (!empty($this->role) && empty($this->backendUser->user['tx_begroupsroles_limit'])) {
-            $result[] = '<li>';
-            $result[] = '<a href="#" class="dropdown-list-link" data-role="0">' . $groupIcon . ' '
-                . htmlspecialchars($this->languageService->sL('LLL:EXT:begroups_roles/Resources/Private/Language/locallang_be.xlf:all_groups'))
-                . '</a>';
-            $result[] = '</li>';
-        }
-
-        foreach ($this->groups as $group) {
-            if ($this->role !== (int)$group['uid']) {
-                $result[] = '<li>';
-                $result[] = '<a href="#" class="dropdown-list-link" data-role="' . (int)$group['uid'] . '">'
-                    . $groupIcon . ' ' . htmlspecialchars($group['title'])
-                    . '</a>';
-                $result[] = '</li>';
-            }
-        }
-
-        $result[] = '</ul>';
-
-        return implode(LF, $result);
+        $view = $this->backendViewFactory->create($this->request);
+        $view->assignMultiple([
+            'user' => $this->backendUser,
+            'role' => $this->role,
+            'groups' => $this->groups,
+        ]);
+        return $view->render('ToolbarItems/RoleSwitcherDropdown');
     }
 
     /**
@@ -225,12 +186,11 @@ class RoleSwitcher implements ToolbarItemInterface
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
+     * This is being called via AJAX when user choose a role to switch to.
      */
-    public function switchRoleAction(ServerRequestInterface $request)
+    public function switchRoleAction(ServerRequestInterface $request): ResponseInterface
     {
-        $newRole = (int)GeneralUtility::_POST('role');
+        $newRole = (int)($GLOBALS['TYPO3_REQUEST']->getParsedBody()['role'] ?? null);
         if ($newRole <= 0 || !GeneralUtility::inList($this->backendUser->user['tx_begroupsroles_groups'], $newRole)) {
             $newRole = 0;
         }

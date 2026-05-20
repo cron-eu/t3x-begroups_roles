@@ -1,52 +1,77 @@
-/***************************************************************
- *  Copyright notice
- *
- *  (c) 2016 Nicole Cordes <cordes@cps-it.de>, CPS-IT GmbH
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
-
 /**
- * Module: TYPO3/CMS/BegroupsRoles/Toolbar/RoleSwitcher
+ * Module: @cron-eu/begroups-roles/toolbar/role-switcher
  */
-define(['jquery', 'TYPO3/CMS/Backend/Storage/ModuleStateStorage'], function($) {
-	'use strict';
+import AjaxRequest from '@typo3/core/ajax/ajax-request.js';
+import RegularEvent from '@typo3/core/event/regular-event.js';
 
-	$(
-		$('#ichhabrecht-begroupsroles-backend-toolbaritems-roleswitcher').on('click', '.dropdown-menu a', function(evt) {
-			evt.preventDefault();
-			$.ajax({
-				url: TYPO3.settings.ajaxUrls['role_switch'],
-				type: 'post',
-				data: {
-					role: $(this).data('role')
-				},
-				dataType: 'json',
-				success: function(data) {
-					// Reset currently selected pid in pagetree
-					ModuleStateStorage.update('web', 0, true, 0);
+class RoleSwitcher {
+  constructor() {
+    this.initializeEvents();
+  }
 
-					// Redirecting to main route
-					document.location.assign(data.redirectUrl);
-				}
-			});
-		})
-	);
+  initializeEvents() {
+    const container = document.querySelector('#ichhabrecht-begroupsroles-backend-toolbaritems-roleswitcher');
 
-});
+    new RegularEvent('click', (event, target) => {
+      event.preventDefault();
+      this.switchRole(target.dataset.role);
+    }).delegateTo(container, '.dropdown-item');
+
+    // Set up filter input
+    new RegularEvent('input', (event, target) => {
+      this.filterRoles(target.value);
+    }).delegateTo(container, '#role-filter-input');
+
+    // Focus filter input when dropdown opens
+    new RegularEvent('show.bs.dropdown', () => {
+      setTimeout(() => {
+        const filterInput = document.querySelector('#role-filter-input');
+        if (filterInput) {
+          filterInput.focus();
+        }
+      }, 100);
+    }).bindTo(container);
+  }
+
+  filterRoles(filterText) {
+    const roleList = document.querySelector('#role-list');
+    if (!roleList) {
+      return;
+    }
+
+    const listItems = roleList.querySelectorAll('li');
+    const searchTerm = filterText.toLowerCase().trim();
+
+    listItems.forEach((item) => {
+      if (searchTerm === '') {
+        // No filter text, show all items
+        item.style.display = '';
+      } else {
+        // Get the text content of the link
+        const link = item.querySelector('a');
+        const text = link ? link.textContent.toLowerCase() : '';
+
+        if (text.includes(searchTerm)) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      }
+    });
+  }
+
+  switchRole(role) {
+    (new AjaxRequest(TYPO3.settings.ajaxUrls['role_switch']))
+      .post({ role: role })
+      .then(async (response) => {
+        const data = await response.resolve();
+        // Redirect to main route
+        document.location.assign(data.redirectUrl);
+      })
+      .catch((error) => {
+        console.error('RoleSwitcher: Error occurred:', error);
+      });
+  }
+}
+
+export default new RoleSwitcher();
